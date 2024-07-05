@@ -1,8 +1,10 @@
-module shield
+module github.com/integer-technologies-b-v/shield
 
 go 1.22.4
 
 require github.com/caddyserver/caddy/v2 v2.8.4
+
+require github.com/jackc/puddle/v2 v2.2.1 // indirect
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -48,6 +50,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgtype v1.14.0 // indirect
 	github.com/jackc/pgx/v4 v4.18.3 // indirect
+	github.com/jackc/pgx/v5 v5.6.0
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/libdns/libdns v0.2.2 // indirect

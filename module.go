@@ -42,7 +42,10 @@ func (ShieldMiddleware) CaddyModule() caddy.ModuleInfo {
 // Provision implements caddy.Provisioner.
 func (m *ShieldMiddleware) Provision(ctx caddy.Context) error {
 	m.dbPool = caddy.NewUsagePool()
-	m.dbPool.LoadOrNew(DBPoolKey, constructDB)
+	_, _, err := m.dbPool.LoadOrNew(DBPoolKey, constructDB)
+	if err != nil {
+		return fmt.Errorf("couldn't init db pool")
+	}
 	return nil
 }
 

@@ -4,7 +4,10 @@ go 1.22.4
 
 require github.com/caddyserver/caddy/v2 v2.8.4
 
-require github.com/jackc/puddle/v2 v2.2.1 // indirect
+require (
+	github.com/jackc/puddle/v2 v2.2.1 // indirect
+	github.com/pires/go-proxyproto v0.7.0 // indirect
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect

@@ -20,12 +20,12 @@ func init() {
 
 // ShieldMiddleware implements an HTTP handler that ... something
 type ShieldMiddleware struct {
-	dbPool *caddy.UsagePool
+	resourcePool *caddy.UsagePool
 }
 
 // Cleanup implements caddy.CleanerUpper.
 func (m *ShieldMiddleware) Cleanup() error {
-	if _, err := m.dbPool.Delete(DBPoolKey); err != nil {
+	if _, err := m.resourcePool.Delete(DBPoolKey); err != nil {
 		return err
 	}
 	return nil
@@ -41,8 +41,8 @@ func (ShieldMiddleware) CaddyModule() caddy.ModuleInfo {
 
 // Provision implements caddy.Provisioner.
 func (m *ShieldMiddleware) Provision(ctx caddy.Context) error {
-	m.dbPool = caddy.NewUsagePool()
-	_, _, err := m.dbPool.LoadOrNew(DBPoolKey, constructDB)
+	m.resourcePool = caddy.NewUsagePool()
+	_, _, err := m.resourcePool.LoadOrNew(DBPoolKey, constructDB)
 	if err != nil {
 		return fmt.Errorf("couldn't init db pool")
 	}
@@ -51,7 +51,7 @@ func (m *ShieldMiddleware) Provision(ctx caddy.Context) error {
 
 // Validate implements caddy.Validator.
 func (m *ShieldMiddleware) Validate() error {
-	v, _, _ := m.dbPool.LoadOrNew(DBPoolKey, constructDB)
+	v, _, _ := m.resourcePool.LoadOrNew(DBPoolKey, constructDB)
 	if db, ok := v.(*pgxpool.Pool); !ok {
 		return fmt.Errorf("invalid value in %s", DBPoolKey)
 	} else if err := db.Ping(context.Background()); err != nil {

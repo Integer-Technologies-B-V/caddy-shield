@@ -1,4 +1,4 @@
-module github.com/integer-technologies-b-v/shield
+module github.com/integer-technologies-b-v/caddy-shield
 
 go 1.22.4
 

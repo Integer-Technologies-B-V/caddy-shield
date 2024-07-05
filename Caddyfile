@@ -1,0 +1,6 @@
+localhost:8080 {
+    tls internal
+	route {
+		visitor_ip stdout
+	}
+}

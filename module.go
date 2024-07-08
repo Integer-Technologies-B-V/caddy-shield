@@ -1,15 +1,16 @@
 package shield
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/caddyserver/caddy/v2"
+	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp/reverseproxy"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 const (
@@ -22,17 +23,16 @@ func init() {
 	caddy.RegisterModule(ShieldMiddleware{})
 }
 
-// ShieldMiddleware implements an HTTP handler that ... something something
+// ShieldMiddleware implements an HTTP handler that authenticates requests and looks up the upstream to which
+// the request  should be proxied to
 type ShieldMiddleware struct {
-	authClient *auth
-}
+	ctx    caddy.Context
+	logger *zap.Logger
 
-// Cleanup implements caddy.CleanerUpper.
-func (m *ShieldMiddleware) Cleanup() error {
-	if _, err := resourcePool.Delete(DBPoolKey); err != nil {
-		return err
-	}
-	return nil
+	pgxPool    *pgxpool.Pool
+	authClient *auth
+
+	ReverseProxy *reverseproxy.Handler
 }
 
 // CaddyModule returns the Caddy module information.
@@ -43,45 +43,57 @@ func (ShieldMiddleware) CaddyModule() caddy.ModuleInfo {
 	}
 }
 
-// Provision implements caddy.Provisioner.
+// Provision implements caddy.Provisioner
 func (m *ShieldMiddleware) Provision(ctx caddy.Context) error {
-	resourcePool = caddy.NewUsagePool()
-	_, _, err := resourcePool.LoadOrNew(DBPoolKey, constructDB)
+	m.ctx = ctx
+	m.logger = ctx.Logger()
+
+	m.ReverseProxy = &reverseproxy.Handler{}
+	if m.ReverseProxy != nil {
+		if err := m.ReverseProxy.Provision(ctx); err != nil {
+			return fmt.Errorf("provision reverse proxy, %v", err)
+		}
+	}
+
+	db, loaded, err := resourcePool.LoadOrNew(DBPoolKey, func() (caddy.Destructor, error) {
+		d, err := getDB(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return dbDestructor{Pool: d}, nil
+	})
 	if err != nil {
-		return fmt.Errorf("couldn't init db pool")
+		m.logger.Error("loading database connections pool", zap.String("db_key", DBPoolKey), zap.Error(err))
+		return err
 	}
 
+	if loaded {
+		m.logger.Info("using loaded db connections pool")
+	}
+
+	dbDesctructor, ok := db.(dbDestructor)
+	if !ok {
+		m.logger.Error("couldn't unmarshal to pgx pool")
+	}
+	m.pgxPool = dbDesctructor.Pool
 	m.authClient = NewAuth()
-	return nil
+	return err
 }
 
-// Validate implements caddy.Validator.
-func (m *ShieldMiddleware) Validate() error {
-	v, _, _ := resourcePool.LoadOrNew(DBPoolKey, constructDB)
-	if db, ok := v.(*pgxpool.Pool); !ok {
-		return fmt.Errorf("invalid value in %s", DBPoolKey)
-	} else if err := db.Ping(context.Background()); err != nil {
-		return fmt.Errorf("can't ping db")
-	}
-	return nil
-}
-
-// ServeHTTP implements caddyhttp.MiddlewareHandler.
+// ServeHTTP implements caddyhttp.MiddlewareHandler
 func (m ShieldMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
 	token := m.GetToken(r)
 	if !m.authClient.Authenticated(token) {
-		w.WriteHeader(401)
+		w.WriteHeader(http.StatusUnauthorized)
 		return nil
 	}
 
-	rp := reverseproxy.Handler{
-		Upstreams: reverseproxy.UpstreamPool{
-			{
-				Dial: "localhost:6969",
-			},
+	m.ReverseProxy.Upstreams = reverseproxy.UpstreamPool{
+		&reverseproxy.Upstream{
+			Dial: "localhost:8000", // in reality this will not be hardcode but fetched from a database / service
 		},
 	}
-	return rp.ServeHTTP(w, r, next)
+	return m.ReverseProxy.ServeHTTP(w, r, next)
 }
 
 func (m ShieldMiddleware) GetToken(r *http.Request) string {
@@ -92,10 +104,28 @@ func (m ShieldMiddleware) GetToken(r *http.Request) string {
 	return ""
 }
 
+// UnmarshalCaddyfile implements caddyfile.Unmarshaler
+func (m *ShieldMiddleware) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
+	d.Next() // consume directive name
+	return nil
+}
+
+// Cleanup implements caddy.CleanerUpper
+func (m *ShieldMiddleware) Cleanup() error {
+	deleted, err := resourcePool.Delete(DBPoolKey)
+	if deleted {
+		m.logger.Debug("unloading unused database", zap.String("db_key", DBPoolKey))
+	}
+	if err != nil {
+		m.logger.Error("closing database", zap.String("db_key", DBPoolKey), zap.Error(err))
+	}
+	return err
+}
+
 // Interface guards
 var (
 	_ caddy.Provisioner           = (*ShieldMiddleware)(nil)
-	_ caddy.Validator             = (*ShieldMiddleware)(nil)
 	_ caddy.CleanerUpper          = (*ShieldMiddleware)(nil)
+	_ caddyfile.Unmarshaler       = (*ShieldMiddleware)(nil)
 	_ caddyhttp.MiddlewareHandler = (*ShieldMiddleware)(nil)
 )

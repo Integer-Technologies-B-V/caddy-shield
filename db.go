@@ -4,25 +4,26 @@ import (
 	"context"
 	"os"
 
-	"github.com/caddyserver/caddy/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
-func constructDB() (caddy.Destructor, error) {
-	dbURL := os.Getenv("DB_URL")
-	db, err := connectToDB(context.Background(), dbURL)
+func getDB(ctx context.Context) (*pgxpool.Pool, error) {
+	godotenv.Load() // consumer err
+	dbURL := os.Getenv("DATABASE_URL")
+	db, err := connectToDB(ctx, dbURL)
 	if err != nil {
 		return nil, nil
 	}
-	return &dbDestructor{Pool: db}, nil
+	return db, nil
 }
 
-// dbDesctructor is a dbpool and implements the caddy.Destruct interface
+// dbDesctructor is a pgxpool.Pool implementing caddy.Destruct
 type dbDestructor struct {
 	*pgxpool.Pool
 }
 
-func (d *dbDestructor) Destruct() error {
+func (d dbDestructor) Destruct() error {
 	d.Close()
 	return nil
 }

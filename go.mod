@@ -2,19 +2,11 @@ module github.com/integer-technologies-b-v/caddy-shield
 
 go 1.22.4
 
-require (
-	cloud.google.com/go/auth v0.4.1
-	github.com/caddyserver/caddy/v2 v2.8.4
-)
+require github.com/caddyserver/caddy/v2 v2.8.4
 
 require (
-	cloud.google.com/go/compute/metadata v0.3.0 // indirect
-	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/google/s2a-go v0.1.7 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/pires/go-proxyproto v0.7.0 // indirect
-	go.opencensus.io v0.24.0 // indirect
 )
 
 require (
@@ -62,7 +54,6 @@ require (
 	github.com/jackc/pgtype v1.14.0 // indirect
 	github.com/jackc/pgx/v4 v4.18.3 // indirect
 	github.com/jackc/pgx/v5 v5.6.0
-	github.com/joho/godotenv v1.5.1
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/libdns/libdns v0.2.2 // indirect

@@ -1,9 +1,11 @@
 {
-	debug
+	debug # drop after deploying
 }
 
 localhost:8080 {
 	route {
-		shield
+		reverse_proxy {
+			dynamic shield
+		}
 	}
 }

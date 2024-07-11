@@ -34,6 +34,7 @@ func (m *ShieldUpstreams) GetUpstreams(r *http.Request) ([]*reverseproxy.Upstrea
 	if !m.authenticator.Authenticated(token) {
 		return []*reverseproxy.Upstream{}, nil
 	}
+	// these are hardcoded testing values for now
 	return []*reverseproxy.Upstream{{Dial: "100.116.76.46:8000"}}, nil
 }
 

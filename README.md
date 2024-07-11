@@ -18,8 +18,3 @@ xcaddy build --with github.com/integer-technologies-b-v/caddy-shield=.
 this will output a caddy binary which can be run as you would run the official image
 
 [xcaddy]: https://github.com/caddyserver/xcaddy
-
-## Deployment
-
-#### Fly.io
-the Dockerfile in the root directory describes the build process for fly.io in order to run a caddy binary packed with the caddy-shield extension. See the `fly.toml` file for more information on the deployment

@@ -2,6 +2,7 @@ package shield
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
@@ -16,8 +17,9 @@ func init() {
 // ShieldMiddleware implements an HTTP handler that authenticates requests and looks up the upstream to which
 // the request  should be proxied to
 type ShieldUpstreams struct {
-	ctx    caddy.Context
-	logger *zap.Logger
+	ctx           caddy.Context
+	logger        *zap.Logger
+	authenticator *Authenticator
 }
 
 // UnmarshalCaddyfile implements caddyfile.Unmarshaler.
@@ -28,7 +30,19 @@ func (m *ShieldUpstreams) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 
 // GetUpstreams implements reverseproxy.UpstreamSource.
 func (m *ShieldUpstreams) GetUpstreams(r *http.Request) ([]*reverseproxy.Upstream, error) {
+	token := m.GetToken(r)
+	if !m.authenticator.Authenticated(token) {
+		return []*reverseproxy.Upstream{}, nil
+	}
 	return []*reverseproxy.Upstream{{Dial: "100.116.76.46:8000"}}, nil
+}
+
+func (m *ShieldUpstreams) GetToken(r *http.Request) string {
+	bearer := r.Header.Get("Authorization")
+	if len(bearer) > 7 && strings.ToUpper(bearer[:6]) == "BEARER" {
+		return bearer[7:]
+	}
+	return ""
 }
 
 // CaddyModule returns the Caddy module information.
@@ -43,6 +57,7 @@ func (ShieldUpstreams) CaddyModule() caddy.ModuleInfo {
 func (m *ShieldUpstreams) Provision(ctx caddy.Context) error {
 	m.ctx = ctx
 	m.logger = ctx.Logger()
+	m.authenticator = NewAuthenticator()
 	return nil
 }
 

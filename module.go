@@ -24,18 +24,19 @@ type ShieldUpstreams struct {
 
 // UnmarshalCaddyfile implements caddyfile.Unmarshaler.
 func (m *ShieldUpstreams) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
-	d.Next() // consume
+	d.Next() // consume directive
 	return nil
 }
 
 // GetUpstreams implements reverseproxy.UpstreamSource.
 func (m *ShieldUpstreams) GetUpstreams(r *http.Request) ([]*reverseproxy.Upstream, error) {
-	token := m.GetToken(r)
-	if !m.authenticator.Authenticated(token) {
-		return []*reverseproxy.Upstream{}, nil
+	m.logger.Error("eiiiiiiiii")
+	if !m.authenticator.Authenticated(r) {
+		m.logger.Error("authenticated", zap.String("nz", "na"))
+		return []*reverseproxy.Upstream{{Dial: "localhost:3333"}}, nil
 	}
-	// these are hardcoded testing values for now
-	return []*reverseproxy.Upstream{{Dial: "100.116.76.46:8000"}}, nil
+	m.logger.Error("authenticated", zap.String("nz", "na"))
+	return []*reverseproxy.Upstream{{Dial: "localhost:8000"}}, nil
 }
 
 func (m *ShieldUpstreams) GetToken(r *http.Request) string {
@@ -58,7 +59,7 @@ func (ShieldUpstreams) CaddyModule() caddy.ModuleInfo {
 func (m *ShieldUpstreams) Provision(ctx caddy.Context) error {
 	m.ctx = ctx
 	m.logger = ctx.Logger()
-	m.authenticator = NewAuthenticator()
+	m.authenticator = NewAuthenticator(ctx.Logger())
 	return nil
 }
 

@@ -1,20 +1,27 @@
 # caddy-shield
 
-caddy-shield is a caddy reverse proxy which implements custom auth relevant ONLY for
-the Link product from Integer. It authenticates user requests by reading the Authorization header and validating it against the [`Auth Provider`](https://supertokens.com), then maps the subdomain request to an IP which the reverse proxy can serve to.
+caddy-shield is a dynamic upstream module for caddy's reverse proxy directive. It provides upstreams based on the Host header of the request. It also checks for authentication of the users trying to access the upstream esentially making it a authentication gateway. If user is authenticated it will allow for access to the internal resource.
 
 ## Building locally
-If you want to further develop the plugin follow the instructions in order to build and test
+If you want to further develop the plugin follow the instructions in order to build and run it
 
 ### `xcaddy` CLI
 
-To build caddy-shield locally, install [`xcaddy`](xcaddy), then build from
-the directory root. Examples:
+To build caddy-shield locally, install [`xcaddy`](https://github.com/caddyserver/xcaddy). Clone this repo and build from
+the root directory. Make the `.env` file and add the required variables (see `.env.example`) Examples:
 
 ```shell
 xcaddy build --with github.com/integer-technologies-b-v/caddy-shield=.
 ```
 
-this will output a caddy binary which can be run as you would run the official image
+and the `.env` file (don't forget to change with yours)
+```shell
+echo "DATABASE_URL=postgres://{user}:{password}@{host}:{port}/{database}?sslmode=disable>" >> .env
+echo "SUPERTOKENS_URL=https://try.supertokens.com/.well-known/jwks.json" >> .env
+```
 
-[xcaddy]: https://github.com/caddyserver/xcaddy
+Then you can run the output binary by xcaddy as any other binary. In this case it is a caddy binary compiled with your module. Example:
+
+```shell
+./caddy run --config Caddyfile 
+```

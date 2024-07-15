@@ -2,46 +2,50 @@ package shield
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/supertokens/supertokens-golang/recipe/session/sessmodels"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
-type Authenticator struct {
-	logger    *zap.Logger
-	cookieKey string
+type Authenticator interface {
+	Authenticated(r *http.Request) bool
 }
 
-func NewAuthenticator(logger *zap.Logger) *Authenticator {
+type AuthenticatorSuperTokens struct {
+	logger                    *zap.Logger
+	cookieKey                 string
+	mutex                     sync.RWMutex
+	jwksCache                 *sessmodels.GetJWKSResult
+	jwkCacheMaxAgeMiliseconds int64
+	coreURL                   string
+}
+
+func NewAuthenticatorSuperTokens(logger *zap.Logger, coreURL string) *AuthenticatorSuperTokens {
 	cookieKey := "sAccessToken"
-	return &Authenticator{cookieKey: cookieKey, logger: logger}
+	return &AuthenticatorSuperTokens{
+		cookieKey:                 cookieKey,
+		logger:                    logger,
+		jwksCache:                 nil,
+		jwkCacheMaxAgeMiliseconds: 60000,
+		coreURL:                   coreURL,
+	}
 }
 
-func (a *Authenticator) Authenticated(r *http.Request) bool {
+func (a *AuthenticatorSuperTokens) Authenticated(r *http.Request) bool {
 	c, err := r.Cookie(a.cookieKey)
 	if err != nil {
 		return false
 	}
 	jwtToken := c.Value
 
-	jwks, err := GetJWKS()
+	jwks, err := a.getJWKS()
 	if err != nil {
-		a.logger.Error("err getting JWKS", zap.Error(err))
 		return false
 	}
 	parsedToken, err := jwt.Parse(jwtToken, jwks.Keyfunc)
 	if err != nil {
-		a.logger.Debug("jwtToken:", zap.String("jwt_token:", jwtToken))
-		a.logger.Debug("jwks:", zap.Array("jwks:", zapcore.ArrayMarshalerFunc(
-			func(ae zapcore.ArrayEncoder) error {
-				for _, a := range jwks.KIDs() {
-					ae.AppendString(a)
-				}
-				return nil
-			},
-		)))
-		a.logger.Error("parseError", zap.Error(err))
 		return false
 	}
 
@@ -51,7 +55,6 @@ func (a *Authenticator) Authenticated(r *http.Request) bool {
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
-		a.logger.Error("claim type assert was not ok")
 		return false
 	}
 

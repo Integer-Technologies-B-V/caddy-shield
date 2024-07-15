@@ -13,6 +13,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
+	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/nyaruka/phonenumbers v1.0.73 // indirect
 	github.com/pires/go-proxyproto v0.7.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -68,6 +69,8 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgtype v1.14.0 // indirect
 	github.com/jackc/pgx/v4 v4.18.3 // indirect
+	github.com/jackc/pgx/v5 v5.6.0
+	github.com/joho/godotenv v1.5.1
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/libdns/libdns v0.2.2 // indirect

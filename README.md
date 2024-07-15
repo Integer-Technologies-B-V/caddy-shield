@@ -14,10 +14,11 @@ the root directory. Make the `.env` file and add the required variables (see `.e
 xcaddy build --with github.com/integer-technologies-b-v/caddy-shield=.
 ```
 
-and the `.env` file (don't forget to change with yours)
+and the `.env` file (don't forget to change with your variables)
 ```shell
-echo "DATABASE_URL=postgres://{user}:{password}@{host}:{port}/{database}?sslmode=disable>" >> .env
-echo "SUPERTOKENS_URL=https://try.supertokens.com/.well-known/jwks.json" >> .env
+echo "UPSTREAMS_SERVICE_ENDPOINT=https://example.com/resource" >> .env # The service which provides upstreams
+echo "SUPERTOKENS_URL=https://try.supertokens.com/.well-known/jwks.json" >> .env # provides jwks for jwt verification
+echo "FALLBACK_UPSTREAM=localhost:3333" >> .env # specifies where unauthorized users should land
 ```
 
 Then you can run the output binary by xcaddy as any other binary. In this case it is a caddy binary compiled with your module. Example:

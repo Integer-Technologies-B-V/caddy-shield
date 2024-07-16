@@ -2,7 +2,6 @@ package shield
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp/reverseproxy"
@@ -53,20 +52,20 @@ type upstreamsResponse struct {
 
 func (u *UpstreamsService) UpstreamsFromHostname(ctx context.Context, host string) ([]*reverseproxy.Upstream, error) {
 	// to test without an upstream service provider just uncomment the bottom line
-	// return []*reverseproxy.Upstream{{Dial: "localhost:8000"}}, nil
-	resp, err := u.do(ctx, host)
-	if err != nil {
-		return nil, err
-	}
-	body := upstreamsResponse{}
-	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
-		return nil, err
-	}
-	upstreams := []*reverseproxy.Upstream{}
-	for _, ups := range body.Upstreams {
-		upstreams = append(upstreams, &reverseproxy.Upstream{
-			Dial: ups,
-		})
-	}
-	return upstreams, nil
+	return []*reverseproxy.Upstream{{Dial: "100.116.76.46:8000"}}, nil
+	// resp, err := u.do(ctx, host)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// body := upstreamsResponse{}
+	// if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+	// 	return nil, err
+	// }
+	// upstreams := []*reverseproxy.Upstream{}
+	// for _, ups := range body.Upstreams {
+	// 	upstreams = append(upstreams, &reverseproxy.Upstream{
+	// 		Dial: ups,
+	// 	})
+	// }
+	// return upstreams, nil
 }

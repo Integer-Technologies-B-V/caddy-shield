@@ -52,6 +52,8 @@ type upstreamsResponse struct {
 }
 
 func (u *UpstreamsService) UpstreamsFromHostname(ctx context.Context, host string) ([]*reverseproxy.Upstream, error) {
+	// to test without an upstream service provider just uncomment the bottom line
+	// return []*reverseproxy.Upstream{{Dial: "localhost:8000"}}, nil
 	resp, err := u.do(ctx, host)
 	if err != nil {
 		return nil, err

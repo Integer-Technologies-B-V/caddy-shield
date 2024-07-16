@@ -67,7 +67,7 @@ func (m *ShieldUpstreams) Provision(ctx caddy.Context) error {
 	m.logger = ctx.Logger()
 	m.fallbackUpstream = []*reverseproxy.Upstream{{Dial: fallbackUpstream}}
 
-	m.upstreamService = NewUpstreamsService(clientID, clientSecret, ctx.Logger())
+	m.upstreamService = NewUpstreamsService(clientID, clientSecret)
 	m.authenticator = NewAuthenticatorSuperTokens(ctx.Logger(), supertokensURL)
 	return nil
 }

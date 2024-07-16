@@ -1,3 +1,4 @@
 caddy
 .env
 Caddyfile
+public_html

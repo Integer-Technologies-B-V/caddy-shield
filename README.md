@@ -2,10 +2,6 @@
 
 caddy-shield is a dynamic upstream module for caddy's reverse proxy directive. It provides upstreams based on the Host header of the request. It also checks for authentication of the users trying to access the upstream esentially making it a authentication gateway. If user is authenticated it will allow for access to the internal resource.
 
-<p align="center"> 
-  <img width="700px" style="center" src="https://github.com/user-attachments/assets/fd323fb0-2ece-4fa6-93c4-d4d7ad298a04"/>
-</p>
-
 ## Building locally
 If you want to further develop the plugin follow the instructions in order to build and run it
 
